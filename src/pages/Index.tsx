@@ -3,6 +3,44 @@ import { useState } from "react";
 import { FileUploadZone } from "@/components/file-upload-zone";
 import { useToast } from "@/hooks/use-toast";
 
+async function getEstimatedAge(csvFile: File): Promise<number> {
+  const formData = new FormData();
+  formData.append('file', csvFile);
+  
+  // 1. Upload the file and get the sample ID
+  const uploadResponse = await fetch('http://localhost:8000/api/upload', {
+    method: 'POST',
+    body: formData,
+  });
+  
+  if (!uploadResponse.ok) {
+    throw new Error('Upload failed');
+  }
+  
+  const uploadResult = await uploadResponse.json();
+  const sampleId = uploadResult.id;
+  
+  // 2. Poll for results until processing is complete
+  while (true) {
+    const resultResponse = await fetch(
+      `http://localhost:8000/api/samples/${sampleId}/result`
+    );
+    
+    if (resultResponse.status === 400) {
+      // Analysis not complete yet, wait 1 second before trying again
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      continue;
+    }
+    
+    if (!resultResponse.ok) {
+      throw new Error('Failed to get results');
+    }
+    
+    const result = await resultResponse.json();
+    return result.predicted_age;
+  }
+}
+
 const Index = () => {
   const [bioAge, setBioAge] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -13,20 +51,8 @@ const Index = () => {
     setBioAge(null);
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const response = await fetch('/getbioage', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to process file');
-      }
-
-      const data = await response.json();
-      setBioAge(data.bioAge);
+      const predictedAge = await getEstimatedAge(file);
+      setBioAge(predictedAge);
       
       toast({
         title: "Success",
