@@ -1,9 +1,8 @@
-
 import { useState } from "react";
 import { FileUploadZone } from "@/components/file-upload-zone";
 import { useToast } from "@/hooks/use-toast";
 
-async function getEstimatedAge(csvFile: File): Promise<number> {
+async function getAnalysisResult(csvFile: File): Promise<AnalysisResult> {
   const formData = new FormData();
   formData.append('file', csvFile);
   
@@ -36,23 +35,49 @@ async function getEstimatedAge(csvFile: File): Promise<number> {
       throw new Error('Failed to get results');
     }
     
-    const result = await resultResponse.json();
-    return result.predicted_age;
+    return await resultResponse.json();
   }
 }
 
+const ClockResult = ({ title, result }: { title: string, result: ClockResult | ClockError }) => {
+  if ('error' in result) {
+    return (
+      <div className="p-6 rounded-lg border bg-destructive/10 text-destructive">
+        <h3 className="text-lg font-semibold mb-2">{title}</h3>
+        <p className="text-sm">{result.error}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-6 rounded-lg border bg-card">
+      <h3 className="text-lg font-semibold mb-4">{title}</h3>
+      <div className="space-y-3">
+        <div>
+          <p className="text-4xl font-bold text-primary">{result.predicted_age.toFixed(1)}</p>
+          <p className="text-sm text-muted-foreground mt-1">Predicted Age (years)</p>
+        </div>
+        <div className="text-sm text-muted-foreground">
+          <p>Standard Deviation: ±{result.std_predicted_age.toFixed(2)}</p>
+          <p>Samples Used: {result.num_samples}</p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const Index = () => {
-  const [bioAge, setBioAge] = useState<number | null>(null);
+  const [result, setResult] = useState<AnalysisResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   const handleFileUpload = async (file: File) => {
     setIsLoading(true);
-    setBioAge(null);
+    setResult(null);
 
     try {
-      const predictedAge = await getEstimatedAge(file);
-      setBioAge(predictedAge);
+      const analysisResult = await getAnalysisResult(file);
+      setResult(analysisResult);
       
       toast({
         title: "Success",
@@ -72,11 +97,11 @@ const Index = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-accent/10">
-      <div className="w-full max-w-2xl px-4 py-8 space-y-8 animate-fade-in">
+      <div className="w-full max-w-4xl px-4 py-8 space-y-8 animate-fade-in">
         <div className="text-center space-y-2">
           <h1 className="text-4xl font-bold tracking-tight">Biological Age Calculator</h1>
           <p className="text-muted-foreground">
-            Upload your CSV file to calculate your biological age
+            Upload your CSV file to calculate your biological age using multiple epigenetic clocks
           </p>
         </div>
 
@@ -85,12 +110,17 @@ const Index = () => {
           isLoading={isLoading}
         />
 
-        {bioAge !== null && (
-          <div className="text-center animate-fade-in">
-            <div className="inline-block px-4 py-2 rounded-full bg-primary/10 text-primary font-medium">
-              Your Biological Age
+        {result && (
+          <div className="animate-fade-in space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <ClockResult title="Horvath Clock" result={result.clocks.horvath} />
+              <ClockResult title="Hannum Clock" result={result.clocks.hannum} />
+              <ClockResult title="PhenoAge Clock" result={result.clocks.phenoage} />
             </div>
-            <p className="text-5xl font-bold mt-4">{bioAge} years</p>
+            <div className="text-center text-sm text-muted-foreground">
+              <p>Analysis completed using {result.total_sites_used} methylation sites</p>
+              <p>Imputation: {result.config.imputation_strategy}, Normalization: {result.config.normalize_data ? "Yes" : "No"}</p>
+            </div>
           </div>
         )}
       </div>

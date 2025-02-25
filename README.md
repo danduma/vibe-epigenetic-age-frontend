@@ -1,69 +1,73 @@
-# Welcome to your Lovable project
+# BioLearn Web Interface
 
-## Project info
+A web-based interface for the BioLearn Python library that allows users to upload methylation data and obtain epigenetic clock analysis scores through an intuitive UI.
 
-**URL**: https://lovable.dev/projects/ec2ed3c7-d3bd-4e61-8c25-b6a4407c4fda
+See https://github.com/danduma/vibe-epigenetic-age-backend for the backend implementation.
 
-## How can I edit this code?
+## Features
 
-There are several ways of editing your application.
+- File upload interface for CSV files containing methylation matrices
+- Asynchronous processing of uploaded files
+- RESTful API for managing samples and retrieving results
+- Status tracking for uploaded samples
+- Error handling and validation
+- Support for multiple epigenetic clocks (Horvath, Hannum, PhenoAge)
+- Statistical analysis of methylation data
 
-**Use Lovable**
+## Technical Stack
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/ec2ed3c7-d3bd-4e61-8c25-b6a4407c4fda) and start prompting.
+### Frontend
+- React
+- Vite
+- Tailwind CSS
+- Shadcn UI
 
-Changes made via Lovable will be committed automatically to this repo.
+## Setup
 
-**Use your preferred IDE**
+### Environment Setup
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+1. Make sure you have Node.js installed (version 16 or higher recommended)
+2. Clone this repository
+3. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Running the Application
 
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+#### Development Mode
+To run the application in development mode with hot-reload:
+```bash
 npm run dev
 ```
+This will start the development server, typically at http://localhost:5173
 
-**Edit a file directly in GitHub**
+#### Production Build
+To build the application for production:
+```bash
+npm run build
+```
+This will generate optimized static files in the `dist` directory.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+To preview the production build locally:
+```bash
+npm run preview
+```
 
-**Use GitHub Codespaces**
+## API Documentation
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
 
-## What technologies are used for this project?
 
-This project is built with .
+## File Format
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+The application accepts CSV files containing methylation matrices. The expected format is:
+- Each row represents a CpG site (methylation probe)
+- Each column represents a sample
+- Values should be beta values between 0 and 1
 
-## How can I deploy this project?
+## Epigenetic Clocks
 
-Simply open [Lovable](https://lovable.dev/projects/ec2ed3c7-d3bd-4e61-8c25-b6a4407c4fda) and click on Share -> Publish.
-
-## I want to use a custom domain - is that possible?
-
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+The application currently supports the following epigenetic clocks:
+- Horvath's Clock (2013)
+- Hannum's Clock (2013)
+- PhenoAge Clock (Levine et al., 2018)
